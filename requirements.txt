@@ -1,0 +1,42 @@
+# --- Core runtime -----------------------------------------------------------
+# Audio capture + wake-word detection
+sounddevice>=0.4.7,<0.7
+numpy>=1.26,<3
+vosk>=0.3.45,<0.4                 # Wake-word engine only (small English model)
+rapidfuzz>=3.9,<4                 # Fuzzy phrase matching
+
+# Voice-activity detection.
+# NOTE: webrtcvad has NO prebuilt wheel for Python 3.14 as of writing —
+# the app degrades to an RMS-energy fallback if webrtcvad isn't
+# available. If you are on Python 3.10–3.12, uncomment the line below
+# for higher-quality VAD:
+# webrtcvad>=2.0.10,<3
+
+# Command speech-to-text (multilingual, Hindi + Indian accents)
+faster-whisper>=1.0.3,<2
+
+# Local LLM intent resolution
+httpx>=0.27,<0.30                 # HTTP client -> Ollama (localhost:11434)
+
+# Text-to-speech
+edge-tts>=6.1.9,<8                # Free, high-quality Hindi + English voices
+pyttsx3>=2.90,<3                  # Offline SAPI5 fallback
+
+# Actions
+pywhatkit>=5.4,<6                 # YouTube playback
+pycaw>=20240210                   # Windows volume control (COM wrapper)
+comtypes>=1.4.2                   # Required by pycaw
+
+# System tray
+pystray>=0.19.5,<0.20
+Pillow>=10,<13
+
+# Settings + logging
+pydantic>=2.7,<3
+pydantic-settings>=2.4,<3
+python-dotenv>=1.0,<2
+PyYAML>=6.0,<7
+
+# --- Dev / packaging (optional) --------------------------------------------
+# pytest>=8,<10
+# pyinstaller>=6.6,<7

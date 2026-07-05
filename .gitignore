@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+models/
+build/
+dist/
+*.spec.bak
+.pytest_cache/
+.coverage
+logs/
