@@ -1,10 +1,10 @@
-# Karry — Always-Listening Voice Assistant for Windows
+# Jimmy — Always-Listening Voice Assistant for Windows
 
-Karry is a local, extensible voice assistant that:
+Jimmy is a local, extensible voice assistant that:
 
 - **Wakes on "Hey Jimmy"** (Vosk small Indian-English model, offline).
   The wake phrase is a common name Vosk transcribes reliably even on
-  accented speech; the app itself is still called Karry.
+  accented speech; the app itself is still called Jimmy.
 - **Understands Indian-accented English and Hindi** via `faster-whisper`
   (`large-v3-turbo` by default — GPU-accelerated when a CUDA runtime is
   available).
@@ -41,13 +41,13 @@ command in plain English or Hinglish and it will still work.
 mic → Vosk (wake word) → VAD → faster-whisper → rules / Ollama → whitelisted action → TTS
 ```
 
-- `src/karry_assistant/audio/`      — mic stream, wake-word detector, VAD recorder
-- `src/karry_assistant/stt/`        — faster-whisper wrapper
-- `src/karry_assistant/nlp/`        — regex rules, Ollama client, router
-- `src/karry_assistant/actions/`    — one file per action group; whitelisted registry
-- `src/karry_assistant/tts/`        — Edge TTS + pyttsx3 fallback
-- `src/karry_assistant/ui/tray.py`  — system-tray icon
-- `src/karry_assistant/main.py`     — orchestrator (wake → capture → transcribe → dispatch)
+- `src/jimmy_assistant/audio/`      — mic stream, wake-word detector, VAD recorder
+- `src/jimmy_assistant/stt/`        — faster-whisper wrapper
+- `src/jimmy_assistant/nlp/`        — regex rules, Ollama client, router
+- `src/jimmy_assistant/actions/`    — one file per action group; whitelisted registry
+- `src/jimmy_assistant/tts/`        — Edge TTS + pyttsx3 fallback
+- `src/jimmy_assistant/ui/tray.py`  — system-tray icon
+- `src/jimmy_assistant/main.py`     — orchestrator (wake → capture → transcribe → dispatch)
 
 ## Prerequisites
 
@@ -75,7 +75,7 @@ Copy-Item .env.example .env    # optional — tweak defaults
 
 ```powershell
 python run.py            # tray icon
-python run.py --console  # headless (log to stderr + %APPDATA%\Karry\logs)
+python run.py --console  # headless (log to stderr + %APPDATA%\Jimmy\logs)
 ```
 
 Try:
@@ -94,12 +94,12 @@ The first Whisper transcription downloads the `large-v3-turbo` model
 All settings can be overridden via env vars or a `.env` file. See
 `.env.example` for the full list. Notable knobs:
 
-- `KARRY_WHISPER_MODEL` — swap between `tiny`, `base`, `small`,
+- `JIMMY_WHISPER_MODEL` — swap between `tiny`, `base`, `small`,
   `medium`, `large-v3`, `large-v3-turbo`. Default `large-v3-turbo`.
-- `KARRY_OLLAMA_MODEL` — swap the intent LLM (e.g. `llama3.2:3b`).
-- `KARRY_OLLAMA_ENABLED=false` — rules-only mode.
-- `KARRY_CONFIRM_DESTRUCTIVE=false` — disable the "are you sure?" prompt.
-- `KARRY_WAKE_PHRASES=hey jimmy,hi jimmy,hey jim` — customise the wake phrases.
+- `JIMMY_OLLAMA_MODEL` — swap the intent LLM (e.g. `llama3.2:3b`).
+- `JIMMY_OLLAMA_ENABLED=false` — rules-only mode.
+- `JIMMY_CONFIRM_DESTRUCTIVE=false` — disable the "are you sure?" prompt.
+- `JIMMY_WAKE_PHRASES=hey jimmy,hi jimmy,hey jim` — customise the wake phrases.
 
 ## Tests
 
@@ -110,13 +110,13 @@ pytest tests/
 
 ## How to add a new command
 
-1. Add an action constant in `src/karry_assistant/nlp/intent.py`.
-2. Add regex patterns in `src/karry_assistant/nlp/rules.py`.
+1. Add an action constant in `src/jimmy_assistant/nlp/intent.py`.
+2. Add regex patterns in `src/jimmy_assistant/nlp/rules.py`.
 3. Add the action name + a short example in
-   `src/karry_assistant/nlp/prompts.py` (so the LLM knows it exists).
+   `src/jimmy_assistant/nlp/prompts.py` (so the LLM knows it exists).
 4. Write a handler function returning `ActionResult` in
-   `src/karry_assistant/actions/<group>.py`.
-5. Register it in `_build_registry()` in `src/karry_assistant/main.py`.
+   `src/jimmy_assistant/actions/<group>.py`.
+5. Register it in `_build_registry()` in `src/jimmy_assistant/main.py`.
 
 ## Packaging as `.exe`
 
@@ -125,5 +125,5 @@ pip install pyinstaller
 .\packaging\build.ps1
 ```
 
-Output: `dist/karry/karry.exe`. See `packaging/karry.spec` for details.
-Copy the Vosk model directory into `dist/karry/models/` before launch.
+Output: `dist/jimmy/jimmy.exe`. See `packaging/jimmy.spec` for details.
+Copy the Vosk model directory into `dist/jimmy/models/` before launch.

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from karry_assistant.actions.registry import ActionRegistry, ActionResult, ToolSchema
-from karry_assistant.nlp.agent import Agent
-from karry_assistant.nlp.intent import Intent
-from karry_assistant.nlp.ollama_client import ChatResponse, ToolCall
-from karry_assistant.ui.events import KarryListener, NullListener
+from jimmy_assistant.actions.registry import ActionRegistry, ActionResult, ToolSchema
+from jimmy_assistant.nlp.agent import Agent
+from jimmy_assistant.nlp.intent import Intent
+from jimmy_assistant.nlp.ollama_client import ChatResponse, ToolCall
+from jimmy_assistant.ui.events import JimmyListener, NullListener
 
 
-class _RecordingListener(KarryListener):
+class _RecordingListener(JimmyListener):
     def __init__(self) -> None:
         self.events: List[tuple] = []
 
@@ -175,7 +175,7 @@ class TestNullListenerDefault:
 
 class TestListenerProtocol:
     def test_null_listener_matches_protocol(self) -> None:
-        listener: KarryListener = NullListener()
+        listener: JimmyListener = NullListener()
         listener.on_status("hello")
         listener.on_heard("hi", "en")
         listener.on_tool_call("t", {"a": 1})

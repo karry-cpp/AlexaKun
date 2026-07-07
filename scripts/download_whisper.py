@@ -2,7 +2,7 @@
 
 Usage (from repo root, with the venv activated):
 
-    python scripts/download_whisper.py                     # uses KARRY_WHISPER_MODEL from .env / defaults
+    python scripts/download_whisper.py                     # uses JIMMY_WHISPER_MODEL from .env / defaults
     python scripts/download_whisper.py --model small        # override
     python scripts/download_whisper.py --model large-v3-turbo
     python scripts/download_whisper.py --hf-token hf_xxx    # avoid anonymous rate limiting
@@ -10,10 +10,10 @@ Usage (from repo root, with the venv activated):
 Why this script exists
 ----------------------
 When faster-whisper downloads a model on its very first `WhisperModel(...)`
-call inside Karry, HF Hub's programmatic client sometimes shows no
+call inside Jimmy, HF Hub's programmatic client sometimes shows no
 visible progress and anonymous downloads can be heavily throttled.
 Running this script pre-populates the cache at ``models/whisper/`` so
-that Karry's first run loads the model from disk in seconds.
+that Jimmy's first run loads the model from disk in seconds.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ import sys
 import time
 from pathlib import Path
 
-# Make the src/ package importable so we can read the same defaults as Karry.
+# Make the src/ package importable so we can read the same defaults as Jimmy.
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
@@ -70,17 +70,17 @@ def _resolve_repo(model_name: str) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Pre-download a Whisper model for Karry.")
+    parser = argparse.ArgumentParser(description="Pre-download a Whisper model for Jimmy.")
     parser.add_argument(
         "--model",
         default=None,
         help="Whisper model name (tiny/base/small/medium/large-v3/large-v3-turbo). "
-        "Defaults to KARRY_WHISPER_MODEL from settings.",
+        "Defaults to JIMMY_WHISPER_MODEL from settings.",
     )
     parser.add_argument(
         "--cache-dir",
         default=None,
-        help="Cache directory. Defaults to KARRY_WHISPER_MODEL_DIR from settings.",
+        help="Cache directory. Defaults to JIMMY_WHISPER_MODEL_DIR from settings.",
     )
     parser.add_argument(
         "--hf-token",
@@ -89,8 +89,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    # Pull defaults from the same settings Karry uses.
-    from karry_assistant.config import load_settings
+    # Pull defaults from the same settings Jimmy uses.
+    from jimmy_assistant.config import load_settings
 
     settings = load_settings()
     model_name = args.model or settings.whisper_model

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from karry_assistant.nlp import intent as A
-from karry_assistant.nlp.intent import Intent
-from karry_assistant.nlp.router import IntentRouter
-from karry_assistant.nlp.rules import RulesParser
+from jimmy_assistant.nlp import intent as A
+from jimmy_assistant.nlp.intent import Intent
+from jimmy_assistant.nlp.router import IntentRouter
+from jimmy_assistant.nlp.rules import RulesParser
 
 
 class _FakeLLM:

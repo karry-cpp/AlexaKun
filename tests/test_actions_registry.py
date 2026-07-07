@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from karry_assistant.actions.registry import ActionRegistry, ActionResult
-from karry_assistant.nlp.intent import Intent
+from jimmy_assistant.actions.registry import ActionRegistry, ActionResult
+from jimmy_assistant.nlp.intent import Intent
 
 
 def _ok_handler(intent: Intent) -> ActionResult:

@@ -11,7 +11,7 @@ if str(SRC) not in sys.path:
 
 
 _USAGE = """\
-Karry — voice assistant.
+Jimmy — voice assistant.
 
 Usage:
   python run.py              # system tray icon (default)
@@ -27,16 +27,16 @@ def _run() -> int:
         print(_USAGE)
         return 0
     if "--console" in argv:
-        from karry_assistant.main import run
+        from jimmy_assistant.main import run
 
         run()
         return 0
     if "--window" in argv:
-        from karry_assistant.ui.window import main as window_main
+        from jimmy_assistant.ui.window import main as window_main
 
         return window_main()
 
-    from karry_assistant.ui.tray import main as tray_main
+    from jimmy_assistant.ui.tray import main as tray_main
 
     return tray_main()
 

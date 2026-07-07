@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from karry_assistant.utils.text import (
+from jimmy_assistant.utils.text import (
     classify_yes_no,
     contains_wake_phrase,
     detect_script,
@@ -14,16 +14,16 @@ from karry_assistant.utils.text import (
 )
 
 
-WAKES = ("hey karry", "hi karry")
+WAKES = ("hey jimmy", "hi jimmy")
 
 
 class TestNormalize:
     @pytest.mark.parametrize(
         "raw, expected",
         [
-            ("Hey Karry!", "hey karry"),
-            ("  hey    karry  ", "hey karry"),
-            ("HEY, KARRY.", "hey karry"),
+            ("Hey Jimmy!", "hey jimmy"),
+            ("  hey    jimmy  ", "hey jimmy"),
+            ("HEY, JIMMY.", "hey jimmy"),
             ("", ""),
             ("play aaoge jab tum on youtube", "play aaoge jab tum on youtube"),
         ],
@@ -40,12 +40,12 @@ class TestWakePhrase:
     @pytest.mark.parametrize(
         "utterance",
         [
-            "hey karry",
-            "hey karry play something",
-            "HEY KARRY!",
-            "hi karry, are you there",
-            "hey kari lock the pc",       # minor misspelling
-            "hey carry hibernate",         # very similar phrase
+            "hey jimmy",
+            "hey jimmy play something",
+            "HEY JIMMY!",
+            "hi jimmy, are you there",
+            "hey jim lock the pc",         # short form
+            "hey jimi hibernate",          # phonetic near-miss
         ],
     )
     def test_positive(self, utterance: str) -> None:
@@ -64,11 +64,11 @@ class TestWakePhrase:
         assert not contains_wake_phrase(utterance, WAKES)
 
     def test_remove_wake_phrase(self) -> None:
-        assert remove_wake_phrase("hey karry play music", WAKES) == "play music"
-        assert remove_wake_phrase("hey karry", WAKES) == ""
+        assert remove_wake_phrase("hey jimmy play music", WAKES) == "play music"
+        assert remove_wake_phrase("hey jimmy", WAKES) == ""
 
     def test_split_wake_and_command(self) -> None:
-        wake, cmd = split_wake_and_command("hey karry please lock the pc", WAKES)
+        wake, cmd = split_wake_and_command("hey jimmy please lock the pc", WAKES)
         assert wake is True
         assert cmd == "lock the pc"
 
@@ -83,7 +83,7 @@ class TestStripLeadingFiller:
         [
             ("please lock the pc", "lock the pc"),
             ("can you hibernate", "hibernate"),
-            ("hey ok please karry lock", "lock"),
+            ("hey ok please jimmy lock", "lock"),
             ("abhi lock kar do", "lock kar do"),
         ],
     )

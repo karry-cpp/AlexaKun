@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from karry_assistant.nlp import intent as A
-from karry_assistant.nlp.rules import RulesParser
+from jimmy_assistant.nlp import intent as A
+from jimmy_assistant.nlp.rules import RulesParser
 
 
 parser = RulesParser()

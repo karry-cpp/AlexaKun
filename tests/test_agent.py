@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from karry_assistant.actions.registry import ActionRegistry, ActionResult, ToolSchema
-from karry_assistant.nlp.agent import Agent
-from karry_assistant.nlp.intent import Intent
-from karry_assistant.nlp.ollama_client import ChatResponse, ToolCall
+from jimmy_assistant.actions.registry import ActionRegistry, ActionResult, ToolSchema
+from jimmy_assistant.nlp.agent import Agent
+from jimmy_assistant.nlp.intent import Intent
+from jimmy_assistant.nlp.ollama_client import ChatResponse, ToolCall
 
 
 class _FakeLLM:
