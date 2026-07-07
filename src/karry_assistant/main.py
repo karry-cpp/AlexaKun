@@ -46,6 +46,7 @@ from __future__ import annotations
 import logging
 import signal
 import threading
+import time
 
 from karry_assistant.actions import apps as apps_actions
 from karry_assistant.actions import media as media_actions
@@ -63,6 +64,7 @@ from karry_assistant.nlp import intent as A
 from karry_assistant.nlp.agent import Agent
 from karry_assistant.nlp.intent import Intent
 from karry_assistant.nlp.ollama_client import OllamaClient
+from karry_assistant.nlp.ollama_launcher import find_ollama_exe, try_start_ollama
 from karry_assistant.nlp.rules import RulesParser
 from karry_assistant.stt.whisper_stt import WhisperSTT
 from karry_assistant.tts.speaker import Speaker
@@ -311,6 +313,45 @@ class Karry:
         logger.info("Stop requested")
         self._stop.set()
 
+    def _ensure_ollama_ready(self) -> None:
+        """Probe Ollama; if unreachable, try to auto-start ``ollama serve``.
+
+        Called once at startup. Prints a clear status line either way,
+        so the transcript window / console shows exactly what happened.
+        """
+        assert self._llm is not None
+        url = self._settings.ollama_url
+        if self._llm.is_reachable():
+            print(f"[karry] Ollama reachable at {url} (model={self._settings.ollama_model})")
+            self._listener.on_status(f"Ollama connected ({self._settings.ollama_model})")
+            return
+
+        exe = find_ollama_exe()
+        if exe is None:
+            print(f"[karry] WARNING: Ollama not reachable at {url} and ollama.exe not found — rules-only mode")
+            self._listener.on_error(
+                "Ollama not installed or unreachable — install from https://ollama.com/download"
+            )
+            return
+
+        print(f"[karry] Ollama not reachable — auto-starting `{exe.name} serve`...")
+        self._listener.on_status("starting Ollama server...")
+        try_start_ollama()
+        # Poll for readiness for up to ~10 seconds.
+        for _ in range(20):
+            if self._stop.is_set():
+                return
+            if self._llm.is_reachable():
+                print(f"[karry] Ollama online at {url} (model={self._settings.ollama_model})")
+                self._listener.on_status(f"Ollama connected ({self._settings.ollama_model})")
+                return
+            time.sleep(0.5)
+
+        print(f"[karry] WARNING: Ollama still not reachable at {url} — will retry on each command")
+        self._listener.on_error(
+            f"Ollama did not come online at {url} — Karry will retry per command"
+        )
+
     def run(self) -> None:
         logger.info("Karry starting")
         self._listener.on_status("starting")
@@ -349,36 +390,22 @@ class Karry:
             except Exception:  # noqa: BLE001
                 logger.exception("TTS cache preload failed (non-fatal)")
 
-            # Verify Ollama at startup so the user sees a clear message
-            # instead of silently degrading to rules-only.
+            # Verify Ollama at startup. If it's installed but not
+            # currently running, auto-launch `ollama serve` — Ollama
+            # doesn't stay up between logins by default, so this saves
+            # the user from starting it manually.
             if self._llm is not None:
-                try:
-                    if self._llm.is_reachable():
-                        print(
-                            f"[karry] Ollama reachable at {self._settings.ollama_url} "
-                            f"(model={self._settings.ollama_model})"
-                        )
-                        self._listener.on_status(
-                            f"Ollama connected ({self._settings.ollama_model})"
-                        )
-                        # Build the agent once Ollama is confirmed.
-                        self._agent = Agent(
-                            registry=self._registry,
-                            llm=self._llm,
-                            confirm_cb=self._confirm_intent,
-                            listener=self._listener,
-                        )
-                    else:
-                        print(
-                            f"[karry] WARNING: Ollama not reachable at "
-                            f"{self._settings.ollama_url} — rules-only mode"
-                        )
-                        self._listener.on_error(
-                            f"Ollama not reachable at {self._settings.ollama_url}"
-                        )
-                except Exception:  # noqa: BLE001
-                    print("[karry] WARNING: could not probe Ollama; rules-only fallback active")
-                    self._listener.on_error("could not probe Ollama; rules-only mode")
+                self._ensure_ollama_ready()
+                # Build the agent regardless of reachability — the
+                # OllamaClient handles per-request failures gracefully,
+                # so Karry can still reconnect if Ollama comes online
+                # later in the session.
+                self._agent = Agent(
+                    registry=self._registry,
+                    llm=self._llm,
+                    confirm_cb=self._confirm_intent,
+                    listener=self._listener,
+                )
 
             self._mic.drain()  # discard audio buffered during model load
             print(f"[karry] listening. Say '{self._settings.wake_phrases[0]}'.")
@@ -404,10 +431,14 @@ class Karry:
     def _handle_wake(self, residual: str) -> None:
         self._listener.on_status("wake detected")
         # Fast path: rules match on the residual (English/ASCII only).
+        # We do NOT publish the residual as "heard" until we've actually
+        # matched a rule — otherwise Vosk's noisy transcription of the
+        # wake phrase itself (e.g. "gary") shows up as a fake user line
+        # in the transcript window.
         if residual:
-            self._listener.on_heard(residual, "en")
             fast_intent = self._rules.parse(residual)
             if fast_intent is not None and not fast_intent.is_unknown:
+                self._listener.on_heard(residual, "en")
                 self._speaker.speak("Yes.", lang="en")
                 self._execute_intent_directly(fast_intent, lang_hint="en")
                 return
@@ -441,10 +472,30 @@ class Karry:
 
         # Agentic path.
         if self._agent is None:
-            msg = "AI backend not available"
-            self._speaker.speak(f"Sorry, I need my AI backend running to handle that.", lang="en")
+            # Agent isn't built (Ollama was disabled in config). Reply
+            # with a clear diagnostic instead of a generic error.
+            msg = "AI backend disabled in config"
+            self._speaker.speak(
+                "Sorry, my AI backend is disabled. I only recognise fixed commands right now.",
+                lang="en",
+            )
             self._listener.on_error(msg)
             return
+
+        # Check reachability just before we spend LLM time. If Ollama
+        # went away since startup, try one auto-reconnect.
+        if self._llm is not None and not self._llm.is_reachable():
+            self._listener.on_status("reconnecting to Ollama...")
+            self._ensure_ollama_ready()
+            if not self._llm.is_reachable():
+                self._speaker.speak(
+                    "Sorry, my AI backend is offline. Try running ollama serve.",
+                    lang="en",
+                )
+                self._listener.on_error(
+                    f"Ollama not reachable at {self._settings.ollama_url}"
+                )
+                return
 
         print(f"[karry] agent handling: {transcript.text!r}")
         self._listener.on_status("thinking...")
