@@ -219,14 +219,23 @@ class Speaker:
 
     def _speak_one(self, text: str, lang: str) -> None:
         """Try phrase cache first (instant), then edge-tts (~1 s round
-        trip, natural voice), then pyttsx3 (offline SAPI5 fallback)."""
+        trip, natural voice), then pyttsx3 (offline SAPI5 fallback).
+
+        The ``lang`` argument is only a hint. The actual voice is
+        selected from the *content* of the text — a Devanagari-heavy
+        response gets the Hindi voice, everything else gets the
+        English voice. This prevents the English reply "Playing X on
+        YouTube" from being spoken with the Hindi voice just because
+        the user's input happened to be Hindi.
+        """
+        effective_lang = "hi" if _has_devanagari(text) else "en"
         if self._cached_playback(text):
             return
 
         edge = self._get_edge()
         if edge is not None:
             try:
-                if edge.speak(text, lang=lang):
+                if edge.speak(text, lang=effective_lang):
                     return
             except Exception:  # noqa: BLE001
                 logger.exception("edge-tts raised for %r", text)
@@ -234,6 +243,15 @@ class Speaker:
         pyttsx = self._get_pyttsx3()
         if pyttsx is not None:
             try:
-                pyttsx.speak(text, _lang=lang)
+                pyttsx.speak(text, _lang=effective_lang)
             except Exception:  # noqa: BLE001
                 logger.exception("pyttsx3 raised for %r", text)
+
+
+def _has_devanagari(text: str) -> bool:
+    """True if the string contains any Devanagari (Hindi) character."""
+    for ch in text:
+        code = ord(ch)
+        if 0x0900 <= code <= 0x097F:
+            return True
+    return False
