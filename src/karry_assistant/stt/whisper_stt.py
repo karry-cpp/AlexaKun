@@ -59,6 +59,24 @@ class Transcription:
     duration: float
 
 
+# Words + phrases Karry commands are most likely to contain. Passing
+# this to Whisper as ``initial_prompt`` biases the language model
+# toward these tokens, which dramatically reduces mistranscriptions
+# like "playback to friends" for "play aaoge jab tum" or "Gary" for
+# "Karry".
+_INITIAL_PROMPT = (
+    "Hey Karry. Play, pause, stop, next, previous, resume song music. "
+    "Volume up, volume down, mute, unmute, set volume to. "
+    "Open, launch, start Chrome, Firefox, Edge, Notepad, VS Code, "
+    "Explorer, Calculator, Settings, Terminal, WhatsApp, Spotify. "
+    "Lock, sleep, shutdown, hibernate, restart the PC. "
+    "Search on Google, play on YouTube. "
+    "Aaoge jab tum, tum hi ho, kesariya, chaiyya chaiyya, kal ho na ho, "
+    "chrome kholo, gaana chala do, awaaz kam karo, "
+    "PC band kar do, hibernate kar do, restart karo."
+)
+
+
 def _watch_download_size(download_root: str, stop: threading.Event) -> None:
     """Background thread: print a heartbeat with the current on-disk size
     of the Whisper model directory so the user can see download progress."""
@@ -171,6 +189,8 @@ class WhisperSTT:
             vad_filter=False,          # we already trimmed via webrtcvad
             temperature=0.0,
             condition_on_previous_text=False,
+            initial_prompt=_INITIAL_PROMPT,
+            no_speech_threshold=0.45,  # be less eager to declare silence
         )
         text = " ".join(seg.text.strip() for seg in segments if seg.text).strip()
         detected = getattr(info, "language", None) or self._language or "en"
@@ -182,3 +202,16 @@ class WhisperSTT:
             text,
         )
         return Transcription(text=text, language=detected, duration=duration)
+
+    def warm_up(self) -> None:
+        """Run a tiny transcription on synthetic silence so the first
+        real command doesn't pay the cold-start cost (cuBLAS JIT, kernel
+        compilation, tokenizer load). Safe to call from any thread."""
+        try:
+            self._ensure_loaded()
+            silence = np.zeros(int(0.5 * 16000), dtype=np.int16).tobytes()
+            t0 = time.monotonic()
+            self.transcribe_pcm(silence, sample_rate=16000)
+            logger.info("Whisper warm-up transcribe: %.2fs", time.monotonic() - t0)
+        except Exception:  # noqa: BLE001
+            logger.exception("Whisper warm-up failed (non-fatal)")

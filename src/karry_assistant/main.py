@@ -303,6 +303,7 @@ class Karry:
             voice_en=settings.tts_voice_en,
             voice_hi=settings.tts_voice_hi,
             rate=settings.tts_rate,
+            cache_dir=settings.resolve_path("models/tts_cache"),
         )
 
     # -- lifecycle ------------------------------------------------------
@@ -331,6 +332,22 @@ class Karry:
                 logger.exception("Whisper preload failed; commands will not work")
                 print("[karry] WARNING: Whisper failed to load — see log for details")
                 self._listener.on_error("Whisper failed to load")
+
+            # Warm-up: run a tiny transcription now so the first real
+            # command doesn't pay cuBLAS JIT / kernel-compile latency.
+            try:
+                self._listener.on_status("warming Whisper...")
+                self._stt.warm_up()
+            except Exception:  # noqa: BLE001
+                logger.exception("Whisper warm-up failed (non-fatal)")
+
+            # Pre-synthesise canned prompts ("Yes?", "Okay, cancelled.",
+            # etc.) so playback is instant on subsequent wakes.
+            try:
+                self._listener.on_status("preparing TTS cache...")
+                self._speaker.preload_phrase_cache()
+            except Exception:  # noqa: BLE001
+                logger.exception("TTS cache preload failed (non-fatal)")
 
             # Verify Ollama at startup so the user sees a clear message
             # instead of silently degrading to rules-only.
@@ -396,7 +413,9 @@ class Karry:
                 return
 
         # Prompt + capture command via VAD → Whisper → agent.
-        self._speaker.speak_and_wait("Yes?", lang="en", timeout=4.0)
+        # Use a short chime instead of TTS "Yes?" — instant, no ~1 s
+        # audio playback latency between wake and being ready to hear.
+        self._speaker.chime()
         self._listener.on_status("listening for command...")
         self._mic.drain()
         pcm = self._vad.record(self._mic, self._stop)
