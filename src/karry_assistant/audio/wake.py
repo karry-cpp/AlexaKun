@@ -25,7 +25,7 @@ class WakeEvent:
 
     ``residual_text`` contains anything Vosk transcribed *after* the wake
     phrase in the same utterance. It may be an empty string (user paused
-    after saying "hey karry") — in that case the caller should switch to
+    after saying "hey jimmy") — in that case the caller should switch to
     VAD-based command capture. When non-empty it is only reliable for
     English/ASCII content because Vosk's English model cannot transcribe
     Hindi correctly; the orchestrator can still choose to re-transcribe

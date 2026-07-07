@@ -63,9 +63,9 @@ class Transcription:
 # this to Whisper as ``initial_prompt`` biases the language model
 # toward these tokens, which dramatically reduces mistranscriptions
 # like "playback to friends" for "play aaoge jab tum" or "Gary" for
-# "Karry".
+# "Jimmy".
 _INITIAL_PROMPT = (
-    "Hey Karry. Play, pause, stop, next, previous, resume song music. "
+    "Hey Jimmy. Play, pause, stop, next, previous, resume song music. "
     "Volume up, volume down, mute, unmute, set volume to. "
     "Open, launch, start Chrome, Firefox, Edge, Notepad, VS Code, "
     "Explorer, Calculator, Settings, Terminal, WhatsApp, Spotify. "

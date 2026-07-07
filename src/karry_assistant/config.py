@@ -20,16 +20,19 @@ class Settings(BaseSettings):
     )
 
     # --- Wake word (Vosk) ---------------------------------------------------
-    vosk_model_path: str = "models/vosk-model-small-en-us-0.15"
+    vosk_model_path: str = "models/vosk-model-small-en-in-0.4"
     # NoDecode keeps pydantic-settings from JSON-parsing the CSV env value —
-    # our validator below handles the split.
+    # our validator below handles the split. 'Jimmy' is far easier for the
+    # small Vosk model to transcribe reliably than 'Karry'.
     wake_phrases: Annotated[Tuple[str, ...], NoDecode] = (
-        "hey karry",
-        "hi karry",
-        "hey kari",
-        "hey carry",
+        "hey jimmy",
+        "hi jimmy",
+        "hey jim",
+        "hey jimmi",
+        "hey jimi",
+        "he jimmy",
     )
-    wake_fuzzy_threshold: int = 82
+    wake_fuzzy_threshold: int = 78
     wake_cooldown_seconds: float = 2.0
 
     # --- Microphone ---------------------------------------------------------
@@ -73,11 +76,11 @@ class Settings(BaseSettings):
     def _split_wake_phrases(cls, value: object) -> Tuple[str, ...]:
         if isinstance(value, str):
             parts = [p.strip().lower() for p in value.split(",") if p.strip()]
-            return tuple(parts or ["hey karry"])
+            return tuple(parts or ["hey jimmy"])
         if isinstance(value, (list, tuple)):
             parts = [str(p).strip().lower() for p in value if str(p).strip()]
-            return tuple(parts or ["hey karry"])
-        return ("hey karry",)
+            return tuple(parts or ["hey jimmy"])
+        return ("hey jimmy",)
 
     @field_validator("mic_device_index", mode="before")
     @classmethod

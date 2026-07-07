@@ -2,9 +2,12 @@
 
 Karry is a local, extensible voice assistant that:
 
-- **Wakes on "Hey Karry"** (Vosk small English model, offline).
+- **Wakes on "Hey Jimmy"** (Vosk small Indian-English model, offline).
+  The wake phrase is a common name Vosk transcribes reliably even on
+  accented speech; the app itself is still called Karry.
 - **Understands Indian-accented English and Hindi** via `faster-whisper`
-  (`large-v3` by default — no accent tradeoff).
+  (`large-v3-turbo` by default — GPU-accelerated when a CUDA runtime is
+  available).
 - **Resolves intent** with a regex fast-path + a local **Ollama** LLM
   (`qwen2.5:3b-instruct`, multilingual) for open-ended phrasing.
 - **Runs whitelisted commands only** — the LLM chooses *which* action to
@@ -16,9 +19,12 @@ Karry is a local, extensible voice assistant that:
 
 ## Supported commands (v1)
 
+Say **"Hey Jimmy"** followed by any of these (or free-form phrasing — the
+local LLM handles anything the rules don't recognise).
+
 | Category | Examples |
 |---|---|
-| Power | *"hey karry lock the pc"*, *"hibernate the pc"*, *"shut down"*, *"restart"*, *"sleep"*, *"pc band kar do"* |
+| Power | *"lock the pc"*, *"hibernate the pc"*, *"shut down"*, *"restart"*, *"sleep"*, *"pc band kar do"* |
 | Apps | *"open chrome"*, *"launch notepad"*, *"vs code start karo"* |
 | Volume | *"volume up"*, *"mute"*, *"set volume to 50"*, *"awaaz kam kar do"* |
 | Media | *"play"*, *"pause"*, *"next song"*, *"agla gaana"* |
@@ -49,8 +55,8 @@ mic → Vosk (wake word) → VAD → faster-whisper → rules / Ollama → white
    ship a wheel — the app gracefully falls back to an RMS-energy voice
    activity detector. If you want the higher-quality webrtcvad-based
    VAD, use Python 3.10–3.12 and uncomment `webrtcvad` in `requirements.txt`.
-2. **Vosk small English model** — download and extract into `models/`:
-   - https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip → `models/vosk-model-small-en-us-0.15/`
+2. **Vosk small Indian-English model** — download and extract into `models/`:
+   - https://alphacephei.com/vosk/models/vosk-model-small-en-in-0.4.zip → `models/vosk-model-small-en-in-0.4/`
 3. **Ollama** (for LLM intent fallback):
    - Install from https://ollama.com/download
    - `ollama pull qwen2.5:3b-instruct`
@@ -74,14 +80,14 @@ python run.py --console  # headless (log to stderr + %APPDATA%\Karry\logs)
 
 Try:
 
-- *"Hey Karry, lock the pc"*
-- *"Hey Karry, play aaoge jab tum on youtube"*
-- *"Hey Karry, chrome kholo"*
-- *"Hey Karry, volume band karo"*
-- *"Hey Karry, shut down the pc"* → **"Should I shut down the pc?"** → *"yes"*
+- *"Hey Jimmy, lock the pc"*
+- *"Hey Jimmy, play aaoge jab tum on youtube"*
+- *"Hey Jimmy, chrome kholo"*
+- *"Hey Jimmy, volume band karo"*
+- *"Hey Jimmy, shut down the pc"* → **"Should I shut down the pc?"** → *"yes"*
 
-The first Whisper transcription downloads the `large-v3` model
-(~1.5 GB) into `models/whisper/`. Subsequent runs use the cached copy.
+The first Whisper transcription downloads the `large-v3-turbo` model
+(~1.6 GB) into `models/whisper/`. Subsequent runs use the cached copy.
 
 ## Configuration
 
@@ -89,11 +95,11 @@ All settings can be overridden via env vars or a `.env` file. See
 `.env.example` for the full list. Notable knobs:
 
 - `KARRY_WHISPER_MODEL` — swap between `tiny`, `base`, `small`,
-  `medium`, `large-v3`, `large-v3-turbo`. Default `large-v3`.
+  `medium`, `large-v3`, `large-v3-turbo`. Default `large-v3-turbo`.
 - `KARRY_OLLAMA_MODEL` — swap the intent LLM (e.g. `llama3.2:3b`).
 - `KARRY_OLLAMA_ENABLED=false` — rules-only mode.
 - `KARRY_CONFIRM_DESTRUCTIVE=false` — disable the "are you sure?" prompt.
-- `KARRY_WAKE_PHRASES=hey karry,hi karry` — customise the wake phrases.
+- `KARRY_WAKE_PHRASES=hey jimmy,hi jimmy,hey jim` — customise the wake phrases.
 
 ## Tests
 

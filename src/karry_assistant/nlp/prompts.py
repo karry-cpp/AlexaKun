@@ -58,25 +58,25 @@ Rules:
 
 Examples:
 
-user: "hey karry hibernate the pc"
+user: "hey jimmy hibernate the pc"
 {"action":"power.hibernate","params":{},"confidence":0.98}
 
-user: "hey karry aaoge jab tum youtube pe chala do"
+user: "hey jimmy aaoge jab tum youtube pe chala do"
 {"action":"youtube.play","params":{"query":"aaoge jab tum"},"confidence":0.95}
 
-user: "hey karry chrome kholo"
+user: "hey jimmy chrome kholo"
 {"action":"apps.launch","params":{"app":"chrome"},"confidence":0.96}
 
-user: "hey karry volume band karo"
+user: "hey jimmy volume band karo"
 {"action":"volume.mute","params":{},"confidence":0.94}
 
-user: "hey karry set volume to seventy percent"
+user: "hey jimmy set volume to seventy percent"
 {"action":"volume.set","params":{"level":"70"},"confidence":0.92}
 
-user: "hey karry google me the weather in mumbai"
+user: "hey jimmy google me the weather in mumbai"
 {"action":"web.search","params":{"query":"weather in mumbai"},"confidence":0.9}
 
-user: "hey karry uhh do the thing"
+user: "hey jimmy uhh do the thing"
 {"action":"unknown","params":{},"confidence":0.1}
 """
 

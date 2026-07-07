@@ -7,7 +7,7 @@ High-level control flow:
     └───────────────┬─────────────────────────────────────────────┘
                     │
         ┌───────────▼──────────┐
-        │ VoskWakeDetector      │  Vosk small-en model, "hey karry"
+        │ VoskWakeDetector      │  Vosk small-en-in model, "hey jimmy"
         └───────────┬──────────┘
                     │ (wake event)
         ┌───────────▼──────────┐
@@ -34,7 +34,7 @@ High-level control flow:
         │ Speaker               │  TTS confirmation → back to waiting for wake
         └──────────────────────┘
 
-If the user says everything in one breath ("hey karry lock the pc")
+If the user says everything in one breath ("hey jimmy lock the pc")
 Vosk returns the whole utterance and, when the residual matches a rule,
 we skip re-capture and Whisper for that turn. Anything not recognized
 by rules is always re-captured via Whisper so accented English and
