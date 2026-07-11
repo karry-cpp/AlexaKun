@@ -42,6 +42,18 @@ def _handler_boom(_intent: Intent) -> ActionResult:
 def _make_registry() -> ActionRegistry:
     r = ActionRegistry()
     r.register(
+        "answer.direct",
+        _handler_ok,
+        schema=ToolSchema(
+            description="Answer directly.",
+            parameters={
+                "type": "object",
+                "properties": {"answer": {"type": "string"}},
+                "required": ["answer"],
+            },
+        ),
+    )
+    r.register(
         "youtube.play",
         _handler_ok,
         schema=ToolSchema(
@@ -68,6 +80,29 @@ def _make_registry() -> ActionRegistry:
 
 
 class TestAgentSingleStep:
+    def test_generic_date_question_uses_answer_tool(self) -> None:
+        llm = _FakeLLM(
+            [
+                ChatResponse(
+                    tool_calls=[
+                        ToolCall(
+                            name="answer.direct",
+                            arguments={
+                                "answer": "From 21 March to 11 July is 112 days, exactly 16 weeks."
+                            },
+                        )
+                    ]
+                ),
+                ChatResponse(content="From 21 March to 11 July is 112 days, exactly 16 weeks."),
+            ]
+        )
+        agent = Agent(registry=_make_registry(), llm=llm)
+        outcome = agent.run("Today is 11th July; how many weeks since 21st March?")
+
+        assert outcome.steps[0].tool_name == "answer.direct"
+        assert outcome.steps[0].arguments["answer"].endswith("16 weeks.")
+        assert outcome.final_message.endswith("16 weeks.")
+
     def test_calls_tool_and_returns(self) -> None:
         llm = _FakeLLM(
             [

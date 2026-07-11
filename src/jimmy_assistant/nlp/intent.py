@@ -30,6 +30,8 @@ ACTION_OPEN_THING = "open.thing"
 ACTION_WEB_SEARCH = "web.search"
 ACTION_YOUTUBE_PLAY = "youtube.play"
 
+ACTION_ANSWER_DIRECT = "answer.direct"
+
 ACTION_CANCEL = "system.cancel"
 ACTION_UNKNOWN = "unknown"
 
@@ -54,6 +56,7 @@ KNOWN_ACTIONS = frozenset(
         ACTION_OPEN_THING,
         ACTION_WEB_SEARCH,
         ACTION_YOUTUBE_PLAY,
+        ACTION_ANSWER_DIRECT,
         ACTION_CANCEL,
     }
 )

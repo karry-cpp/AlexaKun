@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from jimmy_assistant.actions.answer import answer_direct
 from jimmy_assistant.actions.registry import ActionRegistry, ActionResult
 from jimmy_assistant.nlp.intent import Intent
 
@@ -67,3 +68,20 @@ class TestRegistry:
         r.register("x", _ok_handler)
         assert r.has("x")
         assert not r.has("y")
+
+
+class TestAnswerDirect:
+    def test_answer_direct_returns_spoken_answer(self) -> None:
+        result = answer_direct(
+            Intent(
+                name="answer.direct",
+                slots={"answer": "From 21 March to 11 July is exactly 16 weeks."},
+            )
+        )
+        assert result.ok is True
+        assert result.speak_en == "From 21 March to 11 July is exactly 16 weeks."
+
+    def test_answer_direct_rejects_empty_answer(self) -> None:
+        result = answer_direct(Intent(name="answer.direct", slots={"answer": "   "}))
+        assert result.ok is False
+        assert "empty" in result.error

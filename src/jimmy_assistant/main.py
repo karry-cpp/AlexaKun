@@ -49,6 +49,7 @@ import threading
 import time
 
 from jimmy_assistant.actions import apps as apps_actions
+from jimmy_assistant.actions import answer as answer_actions
 from jimmy_assistant.actions import media as media_actions
 from jimmy_assistant.actions import open_things as open_actions
 from jimmy_assistant.actions import power as power_actions
@@ -92,6 +93,28 @@ _EMPTY = _obj({})
 
 def _build_registry() -> ActionRegistry:
     registry = ActionRegistry()
+
+    # Generic direct answer / reasoning
+    registry.register(
+        A.ACTION_ANSWER_DIRECT,
+        answer_actions.answer_direct,
+        schema=ToolSchema(
+            description=(
+                "Answer a generic user question directly without opening apps or the web. "
+                "Use this for arithmetic, date differences, definitions, short explanations, "
+                "and factual reasoning that you can solve from the user's prompt."
+            ),
+            parameters=_obj(
+                {
+                    "answer": {
+                        "type": "string",
+                        "description": "Concise answer to speak to the user. Include the calculation if helpful.",
+                    }
+                },
+                required=["answer"],
+            ),
+        ),
+    )
 
     # Power (destructive → require verbal confirmation)
     registry.register(
